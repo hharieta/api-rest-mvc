@@ -1,5 +1,10 @@
-from datetime import datetime
+#from datetime import datetime
 from flask import abort, make_response
+from config import db
+from models import Person, person_schema, people_schema
+
+"""
+DEPRECATED 
 
 #generates a string representation of the current timestamp
 def get_timestamp() -> str:
@@ -23,6 +28,7 @@ PEOPLE = {
         "timestamp": get_timestamp(),
     }
 }
+"""
 
 # /people GET
 def read_all() -> list:
