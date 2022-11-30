@@ -1,44 +1,26 @@
 #from datetime import datetime
 from flask import abort, make_response
 from config import db
-from models import Person, person_schema, people_schema
-
-"""
-DEPRECATED 
-
-#generates a string representation of the current timestamp
-def get_timestamp() -> str:
-    return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
-
-
-PEOPLE = {
-    "Fairy": {
-        "fname": "Tooth",
-        "lname": "Fairy",
-        "timestamp": get_timestamp(),
-    },
-    "Ruprecht": {
-        "fname": "Knecht",
-        "lname": "Ruprecht",
-        "timestamp": get_timestamp(),
-    },
-    "Bunny": {
-        "fname": "Easter",
-        "lname": "Bunny",
-        "timestamp": get_timestamp(),
-    }
-}
-"""
+from models.models import Person, person_schema, people_schema
 
 # /people GET
-def read_all() -> list:
-    return list(PEOPLE.values())
+def read_all():
+    # people variable contains a list of database items.
+    people = Person.query.all()
+    # serialize the Python objects with .dump() 
+    # and return the data of all the people as 
+    # a response to the REST API call.
+    return people_schema.dump(people)
 
 
 # /people/{lname} GET
 def read_one(lname):
-    if lname in PEOPLE:
-        return PEOPLE[lname]
+    person = Person.query.filter(Person.lname == lname).one_or_none()
+
+    # If a person is found, then person contains a Person object 
+    # and you return the serialized object
+    if person is not None:
+        return person_schema.dump(person)
     else:
         abort(
             404, f'Person with last name {lname} not found'
@@ -48,15 +30,14 @@ def read_one(lname):
 # /people POST
 def create(person):
     lname = person.get("lname")
-    fname = person.get("fname", "")
+    existing_person = Person.query.filter(Person.lname == lname).one_or_none()
 
-    if lname and fname not in PEOPLE:
-        PEOPLE[lname] = {
-            "lname": lname,
-            "fname": fname,
-            "timestamp": get_timestamp(),
-        }
-        return PEOPLE[lname], 201
+    if existing_person is None:
+        new_person = person_schema.load(person, session=db.session)
+        db.session.add(new_person)
+        db.session.commit()
+
+        return person_schema.dump(new_person), 201
     else:
         abort(
             406,
@@ -65,11 +46,16 @@ def create(person):
 
 # /people/{lname} PUT
 def update(lname, person):
-    if lname in PEOPLE:
-        PEOPLE[lname]["fname"] = person.get("fname", PEOPLE[lname]["fname"])
-        PEOPLE[lname]["timestamp"] = get_timestamp()
+    existing_person = Person.query.filter(Person.lname == lname).one_or_none()
 
-        return PEOPLE[lname]
+    if existing_person:
+        update_person = person_schema.load(person, session=db.session)
+        existing_person.fname = update_person.fname
+        existing_person.lname = update_person.lname
+        db.session.merge(existing_person)
+        db.session.commit()
+        
+        return person_schema.dump(existing_person), 201 
     else:
         abort(
             404,
@@ -79,8 +65,12 @@ def update(lname, person):
 
 # /people/{lname} DELETE
 def delete(lname):
-    if lname in PEOPLE:
-        del PEOPLE[lname]
+    existing_person = Person.query.filter(Person.lname == lname).one_or_none()
+
+    if existing_person:
+        db.session.delete(existing_person)
+        db.session.commit()
+
         return make_response(
             f'{lname} succesfully deleted', 200
         )

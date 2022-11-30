@@ -7,7 +7,7 @@ from the database table to a Python object.
 """
 
 from datetime import datetime
-from ..config import db, ma
+from config import db, ma
 
 # Inheriting from db.Model gives Person the SQLAlchemy features 
 # to connect to the database and access its tables
@@ -55,4 +55,6 @@ class PersonSchema(ma.SQLAlchemyAutoSchema):
     
 
 person_schema = PersonSchema()
+# parameter many=True tells to PersonSchema
+# to expect an iterable to serialize
 people_schema = PersonSchema(many=True)

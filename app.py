@@ -1,22 +1,19 @@
-from flask import Flask, render_template
-import connexion
+from flask import render_template
+from models.models import Person
+import config
+# import connexion
 
 ### adding a REST API URL endpoint to your Flask application ###
 
-"""
-Application instance using Connexion rather than Flask:
-
-app = Flask(__name__.split(".")[0])
-
-Internally, the Flask app is still created, 
-but it now has additional functionality added to it
-"""
-app = connexion.App(__name__.split(".")[0], specification_dir="./")
-app.add_api("swagger.yml")
+app = config.connex_app
+app.add_api(config.base_dir / "swagger.yml")
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    # query the Person model to get all the data from 
+    # the person table and pass it on to render_template() 
+    people = Person.query.all()
+    return render_template("home.html", people=people)
 
 
 if __name__ == "__main__":
