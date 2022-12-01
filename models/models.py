@@ -7,6 +7,7 @@ from the database table to a Python object.
 """
 
 from datetime import datetime
+from marshmallow_sqlalchemy import fields
 from config import db, ma
 
 class Note(db.Model):
@@ -63,14 +64,33 @@ Marshmallow also makes sure that all attributes are present
 and contain the expected data type.
 """
 
+class NoteSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Note
+        load_instance = True
+        sqla_session = db.session
+        include_fk = True
+
+
 class PersonSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Person
         load_instance = True
+        include_relationships = True
         sqla_session = db.session
+    
+    """
+    Although you’re working with SQLAlchemyAutoSchema, 
+    you have to explicitly create the notes field in PersonSchema. 
+    Otherwise Marshmallow doesn’t receive all the information 
+    it needs to work with the Notes data
+    """
+    notes = fields.Nested(NoteSchema, many=True)
+
     
 
 person_schema = PersonSchema()
+note_schema = NoteSchema()
 # parameter many=True tells to PersonSchema
 # to expect an iterable to serialize
 people_schema = PersonSchema(many=True)
