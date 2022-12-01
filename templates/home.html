@@ -12,7 +12,14 @@
         </h1>
         <ul>
             {%  for person in people %}
-            <li>{{ person.fname }} {{ person.lname }}</li>
+            <h2>{{ person.fname }} {{ person.lname }}</h2>
+            <ul>
+                {% for note in person.notes %}
+                <li>
+                    {{ note.content }}
+                </li>
+                {% endfor %}
+            </ul>
             {% endfor %}
         </ul>
     </body>

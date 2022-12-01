@@ -9,6 +9,15 @@ from the database table to a Python object.
 from datetime import datetime
 from config import db, ma
 
+class Note(db.Model):
+    __tablename__ = "note"
+    id = db.Column(db.Integer, primary_key=True)
+    person_id = db.Column(db.Integer, db.ForeignKey("person.id"))
+    content = db.Column(db.String, nullable=False)
+    timestamp = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
 # Inheriting from db.Model gives Person the SQLAlchemy features 
 # to connect to the database and access its tables
 class Person(db.Model):
@@ -25,6 +34,13 @@ class Person(db.Model):
     """
     timestamp = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    notes = db.relationship(
+        Note,
+        backref = "person",
+        cascade = "all, delete, delete-orphan",
+        single_parent = True,
+        order_by = "desc(Note.timestamp)"
     )
 
 
