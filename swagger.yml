@@ -96,6 +96,14 @@ paths:
         "204":
           description: "Succesfully deleted person"
   /notes:
+    get:
+      operationId: "notes.read_all"
+      tags:
+        - "Notes"
+      summary: "Read the list of notes"
+      responses:
+        "200":
+          description: "Succesfully read notes list"
     post:
       operationId: "notes.create"
       tags:

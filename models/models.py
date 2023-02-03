@@ -72,13 +72,17 @@ class NoteSchema(ma.SQLAlchemyAutoSchema):
         include_fk = True
 
 
+class NoteSchemaPerson(NoteSchema):
+    person = fields.Nested("PersonSchema")
+
+
 class PersonSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Person
         load_instance = True
         include_relationships = True
         sqla_session = db.session
-    
+
     """
     Although you’re working with SQLAlchemyAutoSchema, 
     you have to explicitly create the notes field in PersonSchema. 
@@ -87,10 +91,10 @@ class PersonSchema(ma.SQLAlchemyAutoSchema):
     """
     notes = fields.Nested(NoteSchema, many=True)
 
-    
 
 person_schema = PersonSchema()
 note_schema = NoteSchema()
 # parameter many=True tells to PersonSchema
 # to expect an iterable to serialize
 people_schema = PersonSchema(many=True)
+note_person_schema = NoteSchemaPerson(many=True)
